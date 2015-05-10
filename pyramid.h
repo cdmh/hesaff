@@ -60,7 +60,7 @@ public:
       edgeScoreThreshold((par.edgeEigenValueRatio + 1.0f)*(par.edgeEigenValueRatio + 1.0f)/par.edgeEigenValueRatio),
       // thresholds are squared, response of det H is proportional to square of derivatives!
       finalThreshold(par.threshold * par.threshold),
-      positiveThreshold(0.8 * finalThreshold),
+      positiveThreshold(0.8f * finalThreshold),
       negativeThreshold(-positiveThreshold) 
       {
          this->par = par;  
@@ -89,6 +89,8 @@ private:
    Mat octaveMap;
    Mat prevBlur, blur;
    Mat low, cur, high;
+
+    HessianDetector &operator=(HessianDetector const &) = delete;
 };
 
 #endif // __PYRAMID_H__

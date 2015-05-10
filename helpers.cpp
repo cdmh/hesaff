@@ -14,10 +14,41 @@
 using namespace cv;
 using namespace std;
 
+#ifdef _MSC_VER
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <stdint.h> // portable: uint64_t   MSVC: __int64 
+
+// MSVC defines this in winsock2.h!?
+typedef struct timeval {
+    long tv_sec;
+    long tv_usec;
+} timeval;
+
+int gettimeofday(struct timeval * tp, struct timezone * /*tzp*/)
+{
+    // Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
+    static const uint64_t EPOCH = ((uint64_t) 116444736000000000ULL);
+
+    SYSTEMTIME  system_time;
+    FILETIME    file_time;
+    uint64_t    time;
+
+    GetSystemTime( &system_time );
+    SystemTimeToFileTime( &system_time, &file_time );
+    time =  ((uint64_t)file_time.dwLowDateTime )      ;
+    time += ((uint64_t)file_time.dwHighDateTime) << 32;
+
+    tp->tv_sec  = (long) ((time - EPOCH) / 10000000L);
+    tp->tv_usec = (long) (system_time.wMilliseconds * 1000);
+    return 0;
+}
+#else
 #include <sys/times.h>
-#include <time.h>
 #include <sys/time.h>
 #include <unistd.h>
+#endif
+#include <time.h>
 #include <stdio.h>
 
 double getTime()
@@ -92,8 +123,8 @@ void rectifyAffineTransformationUpIsUp(float &a11, float &a12, float &a21, float
    double a = a11, b = a12, c = a21, d = a22;   
    double det = sqrt(abs(a*d-b*c));
    double b2a2 = sqrt(b*b + a*a);
-   a11 = b2a2/det;             a12 = 0;
-   a21 = (d*b+c*a)/(b2a2*det); a22 = det/b2a2;   
+   a11 = float(b2a2/det);             a12 = 0.f;
+   a21 = float((d*b+c*a)/(b2a2*det)); a22 = float(det/b2a2);
 }
 
 void rectifyAffineTransformationUpIsUp(float *U)
@@ -194,8 +225,8 @@ bool interpolateCheckBorders(const Mat &im, float ofsx, float ofsy, float a11, f
    const int height = im.rows-2;
    const int halfWidth  = res.cols >> 1;
    const int halfHeight = res.rows >> 1;
-   float x[4]; x[0] = -halfWidth;  x[1] = -halfWidth;  x[2] = +halfWidth;  x[3] = +halfWidth;
-   float y[4]; y[0] = -halfHeight; y[1] = +halfHeight; y[2] = -halfHeight; y[3] = +halfHeight;
+   float x[4]; x[0] = float(-halfWidth);  x[1] = float(-halfWidth);  x[2] = float(+halfWidth);  x[3] = float(+halfWidth);
+   float y[4]; y[0] = float(-halfHeight); y[1] = float(+halfHeight); y[2] = float(-halfHeight); y[3] = float(+halfHeight);
    for (int i=0; i<4; i++)
    {
       float imx = ofsx + x[i]*a11 + y[i]*a12;

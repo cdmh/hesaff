@@ -70,10 +70,10 @@ public:
       }
    
    void onAffineShapeFound(
-      const Mat &blur, float x, float y, float s, float pixelDistance,
+      const Mat &/*blur*/, float x, float y, float s, float pixelDistance,
       float a11, float a12,
       float a21, float a22, 
-      int type, float response, int iters) 
+      int type, float response, int /*iters*/) 
       {
          // convert shape into a up is up frame
          rectifyAffineTransformationUpIsUp(a11, a12, a21, a22);
@@ -89,8 +89,8 @@ public:
             k.x = x; k.y = y; k.s = s; k.a11 = a11; k.a12 = a12; k.a21 = a21; k.a22 = a22; k.response = response; k.type = type;
             for (int i=0; i<128; i++)
                k.desc[i] = (unsigned char)sift.vec[i];
+#if 0  &&  !defined(NDEBUG)
             // debugging stuff
-            if (0)
             {
                cout << "x: " << x << ", y: " << y
                     << ", s: " << s << ", pd: " << pixelDistance
@@ -100,6 +100,9 @@ public:
                   cout << " " << sift.vec[i];
                cout << endl;
             }
+#else
+pixelDistance;
+#endif
             g_numberOfAffinePoints++;
          }
       }
@@ -130,7 +133,7 @@ public:
       }
 };
 
-int main(int argc, char **argv)
+int hesaff(int argc, char **argv)
 {
    if (argc>1)
    {
@@ -168,13 +171,14 @@ int main(int argc, char **argv)
          cout << "Detected " << g_numberOfPoints << " keypoints and " << g_numberOfAffinePoints << " affine shapes in " << getTime()-t1 << " sec." << endl;
 
          char suffix[] = ".hesaff.sift";
-         int len = strlen(argv[1])+strlen(suffix)+1;
-         char buf[len];
-         snprintf(buf, len, "%s%s", argv[1], suffix); buf[len-1]=0;      
+         int const len = 2048;
+         char buf[2048];
+         _snprintf(buf, len, "%s%s", argv[1], suffix); buf[len-1]=0;      
          ofstream out(buf);
          detector.exportKeypoints(out);
       }
    } else {
       printf("\nUsage: hesaff image_name.ppm\nDetects Hessian Affine points and describes them using SIFT descriptor.\nThe detector assumes that the vertical orientation is preserved.\n\n");
    }
+    return 0;
 }
