@@ -107,7 +107,7 @@ pixelDistance;
          }
       }
 
-   void exportKeypoints(ostream &out)
+    void exportKeypoints(ostream &out)
       {
          out << 128 << endl;
          out << keys.size() << endl;
@@ -131,6 +131,30 @@ pixelDistance;
             out << endl;
          }
       }
+
+    cv::Mat SIFTdescriptors()
+    {
+        cv::Mat descriptors((int)keys.size(), 128, CV_32FC1);
+        for (int j=0; j<(int)keys.size(); j++)
+        {
+            Keypoint &k = keys[j];
+         
+            float sc = AffineShape::par.mrSize * k.s;
+            Mat A = (Mat_<float>(2,2) << k.a11, k.a12, k.a21, k.a22);
+            SVD svd(A, SVD::FULL_UV);
+            
+            float *d = (float *)svd.w.data;
+            d[0] = 1.0f/(d[0]*d[0]*sc*sc);
+            d[1] = 1.0f/(d[1]*d[1]*sc*sc);
+            
+            A = svd.u * Mat::diag(svd.w) * svd.u.t();
+           
+            //out << k.x << " " << k.y << " " << A.at<float>(0,0) << " " << A.at<float>(0,1) << " " << A.at<float>(1,1);
+            for (int i=0; i<128; i++)
+                descriptors.at<float>(j,i) = k.desc[i];
+        }
+        return descriptors;
+    }
 };
 
 int hesaff(int argc, char **argv)
@@ -169,6 +193,8 @@ int hesaff(int argc, char **argv)
          t1 = getTime(); g_numberOfPoints = 0;
          detector.detectPyramidKeypoints(image);
          cout << "Detected " << g_numberOfPoints << " keypoints and " << g_numberOfAffinePoints << " affine shapes in " << getTime()-t1 << " sec." << endl;
+
+         cv::Mat SIFT = detector.SIFTdescriptors();
 
          char suffix[] = ".hesaff.sift";
          int const len = 2048;
