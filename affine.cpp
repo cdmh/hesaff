@@ -127,9 +127,12 @@ bool AffineShape::normalizeAffine(const Mat &img, float x, float y, float s, flo
       {
          // smooth accordingly
          gaussianBlurInplace(smoothed, 1.5f*imageToPatchScale);
+
+#ifndef NDEBUG
          // subsample with corresponding scale
          bool touchesBoundary = interpolate(smoothed, (float)(patchImageSize>>1), (float)(patchImageSize>>1), imageToPatchScale, 0, 0, imageToPatchScale, patch);
          assert(!touchesBoundary);
+#endif
       } else
          return true;      
    } else {
@@ -137,8 +140,10 @@ bool AffineShape::normalizeAffine(const Mat &img, float x, float y, float s, flo
       a11 *= imageToPatchScale; a12 *= imageToPatchScale;
       a21 *= imageToPatchScale; a22 *= imageToPatchScale;
       // ok, do the interpolation
+#ifndef NDEBUG
       bool touchesBoundary = interpolate(img, x, y, a11, a12, a21, a22, patch);
       assert(!touchesBoundary);
+#endif
    }
    return false;
 }
