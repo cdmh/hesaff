@@ -13,6 +13,8 @@
 #include <cv.h>
 #include <highgui.h>
 
+namespace hesaff {
+
 using namespace cv;
 
 struct PyramidParams
@@ -92,5 +94,7 @@ private:
 
     HessianDetector &operator=(HessianDetector const &) = delete;
 };
+
+}   // namespace hesaff
 
 #endif // __PYRAMID_H__

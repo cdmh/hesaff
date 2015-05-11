@@ -9,6 +9,8 @@
 
 #include "affine.h"
 
+namespace hesaff {
+
 using namespace cv;
 
 void computeGradient(const Mat &img, Mat &gradx, Mat &grady)
@@ -147,3 +149,5 @@ bool AffineShape::normalizeAffine(const Mat &img, float x, float y, float s, flo
    }
    return false;
 }
+
+}   //  namespace hesaff

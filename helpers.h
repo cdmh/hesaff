@@ -10,6 +10,8 @@
 #ifndef __HELPERS_H__
 #define __HELPERS_H__
 
+namespace hesaff {
+
 void solveLinear3x3(float *A, float *b);
 bool getEigenvalues(float a, float b, float c, float d, float &l1, float &l2);
 void invSqrt(float &a, float &b, float &c, float &l1, float &l2);
@@ -27,5 +29,7 @@ cv::Mat doubleImage(const cv::Mat &input);
 cv::Mat halfImage(const cv::Mat &input);
 
 double getTime();
+
+}   // namespace hesaff
    
 #endif // __HELPERS_H__

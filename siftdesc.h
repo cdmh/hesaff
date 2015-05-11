@@ -16,6 +16,8 @@
 #include <cv.h>
 #include "helpers.h"
 
+namespace hesaff {
+
 struct SIFTDescriptorParams
 {
    int spatialBins;
@@ -69,5 +71,7 @@ private:
    int *bin0, *bin1;
    float *w0, *w1;
 };
+
+}   //  namespace hesaff
 
 #endif //__SIFTDESC_H__

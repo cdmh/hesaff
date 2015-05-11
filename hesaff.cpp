@@ -14,6 +14,9 @@
 #include "helpers.h"
 #include "affine.h"
 #include "siftdesc.h"
+#include "hesaff.h"
+
+namespace hesaff {
 
 using namespace cv;
 using namespace std;
@@ -37,15 +40,6 @@ struct HessianAffineParams
 
 int g_numberOfPoints = 0;
 int g_numberOfAffinePoints = 0;
-
-struct Keypoint
-{
-   float x, y, s;
-   float a11,a12,a21,a22;
-   float response;
-   int type;
-   unsigned char desc[128];
-};
 
 struct AffineHessianDetector : public HessianDetector, AffineShape, HessianKeypointCallback, AffineShapeCallback
 {
@@ -87,6 +81,7 @@ public:
             keys.push_back(Keypoint());
             Keypoint &k = keys.back();
             k.x = x; k.y = y; k.s = s; k.a11 = a11; k.a12 = a12; k.a21 = a21; k.a22 = a22; k.response = response; k.type = type;
+            k.mrSize = AffineShape::par.mrSize;
             for (int i=0; i<128; i++)
                k.desc[i] = (unsigned char)sift.vec[i];
 #if 0  &&  !defined(NDEBUG)
@@ -132,24 +127,12 @@ pixelDistance;
          }
       }
 
-    cv::Mat SIFTdescriptors()
+    Mat SIFTdescriptors() const
     {
-        cv::Mat descriptors((int)keys.size(), 128, CV_32FC1);
+        Mat descriptors((int)keys.size(), 128, CV_32FC1);
         for (int j=0; j<(int)keys.size(); j++)
         {
-            Keypoint &k = keys[j];
-         
-            float sc = AffineShape::par.mrSize * k.s;
-            Mat A = (Mat_<float>(2,2) << k.a11, k.a12, k.a21, k.a22);
-            SVD svd(A, SVD::FULL_UV);
-            
-            float *d = (float *)svd.w.data;
-            d[0] = 1.0f/(d[0]*d[0]*sc*sc);
-            d[1] = 1.0f/(d[1]*d[1]*sc*sc);
-            
-            A = svd.u * Mat::diag(svd.w) * svd.u.t();
-           
-            //out << k.x << " " << k.y << " " << A.at<float>(0,0) << " " << A.at<float>(0,1) << " " << A.at<float>(1,1);
+            Keypoint const &k = keys[j];
             for (int i=0; i<128; i++)
                 descriptors.at<float>(j,i) = k.desc[i];
         }
@@ -157,54 +140,49 @@ pixelDistance;
     }
 };
 
-int hesaff(int argc, char **argv)
+// Detects Hessian Affine points and describes them using SIFT descriptor
+// The detector assumes that the vertical orientation is preserved.
+vector<Keypoint> hessian_affine(cv::Mat const &src)
 {
-   if (argc>1)
-   {
-      Mat tmp = imread(argv[1]);
-      Mat image(tmp.rows, tmp.cols, CV_32FC1, Scalar(0));
+    Mat image(src.rows, src.cols, CV_32FC1, Scalar(0));
       
-      float *out = image.ptr<float>(0);
-      unsigned char *in  = tmp.ptr<unsigned char>(0); 
+    float *out = image.ptr<float>(0);
+    unsigned char const *in  = src.ptr<unsigned char>(0); 
 
-      for (size_t i=tmp.rows*tmp.cols; i > 0; i--)
-      {
-         *out = (float(in[0]) + in[1] + in[2])/3.0f;
-         out++;
-         in+=3;
-      }
+    for (size_t i=src.rows*src.cols; i > 0; i--)
+    {
+        *out = (float(in[0]) + in[1] + in[2])/3.0f;
+        out++;
+        in+=3;
+    }
       
-      HessianAffineParams par;
-      double t1 = 0;
-      {
-         // copy params 
-         PyramidParams p;
-         p.threshold = par.threshold;
+    HessianAffineParams par;
+
+    // copy params 
+    PyramidParams p;
+    p.threshold = par.threshold;
          
-         AffineShapeParams ap;
-         ap.maxIterations = par.max_iter;
-         ap.patchSize = par.patch_size;
-         ap.mrSize = par.desc_factor;
+    AffineShapeParams ap;
+    ap.maxIterations = par.max_iter;
+    ap.patchSize = par.patch_size;
+    ap.mrSize = par.desc_factor;
          
-         SIFTDescriptorParams sp;
-         sp.patchSize = par.patch_size;
+    SIFTDescriptorParams sp;
+    sp.patchSize = par.patch_size;
                 
-         AffineHessianDetector detector(image, p, ap, sp);
-         t1 = getTime(); g_numberOfPoints = 0;
-         detector.detectPyramidKeypoints(image);
-         cout << "Detected " << g_numberOfPoints << " keypoints and " << g_numberOfAffinePoints << " affine shapes in " << getTime()-t1 << " sec." << endl;
+    AffineHessianDetector detector(image, p, ap, sp);
+    double t1 = getTime(); g_numberOfPoints = 0;
+    detector.detectPyramidKeypoints(image);
+    cout << "Detected " << g_numberOfPoints << " keypoints and " << g_numberOfAffinePoints << " affine shapes in " << getTime()-t1 << " sec." << endl;
 
-         cv::Mat SIFT = detector.SIFTdescriptors();
-
-         char suffix[] = ".hesaff.sift";
-         int const len = 2048;
-         char buf[2048];
-         _snprintf(buf, len, "%s%s", argv[1], suffix); buf[len-1]=0;      
-         ofstream out(buf);
-         detector.exportKeypoints(out);
-      }
-   } else {
-      printf("\nUsage: hesaff image_name.ppm\nDetects Hessian Affine points and describes them using SIFT descriptor.\nThe detector assumes that the vertical orientation is preserved.\n\n");
-   }
-    return 0;
+    detector.keys.erase(
+        std::remove_if(
+            detector.keys.begin(),
+            detector.keys.end(),
+            [](){
+        }),
+        detector.keys.end());
+    return detector.keys;
 }
+
+}   // namespace hesaff

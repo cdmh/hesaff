@@ -9,8 +9,12 @@
 
 #include <vector>
 #include "siftdesc.h"
+#ifdef _MSC_VER
+#define _USE_MATH_DEFINES
+#include <math.h>
+#endif
 
-#define M_PI		3.14159265358979323846f
+namespace hesaff {
 
 using namespace std;
 using namespace cv;
@@ -64,7 +68,7 @@ void SIFTDescriptor::samplePatch()
          const int bc1 = bin1[c]; const float wc1 = w1[c]*val;
          
          // ori from atan2 is in range <-pi,pi> so add 2*pi to be surely above zero         
-         const float o = float(par.orientationBins)*(ori.at<float>(r,c) + 2*M_PI)/(2*M_PI);
+         const float o = float(par.orientationBins*(ori.at<float>(r,c) + 2*M_PI)/(2*M_PI));
          
          int   bo0 = (int)o;
          const float wo1 =  o - bo0; 
@@ -140,3 +144,5 @@ void SIFTDescriptor::computeSiftDescriptor(Mat &patch)
    // compute SIFT vector
    sample();
 }
+
+}   // namespace hesaff

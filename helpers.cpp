@@ -11,9 +11,6 @@
 #include <iostream>
 #include <cv.h>
 
-using namespace cv;
-using namespace std;
-
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -50,6 +47,11 @@ int gettimeofday(struct timeval * tp, struct timezone * /*tzp*/)
 #endif
 #include <time.h>
 #include <stdio.h>
+
+namespace hesaff {
+
+using namespace cv;
+using namespace std;
 
 double getTime()
 {     
@@ -368,3 +370,5 @@ Mat halfImage(const Mat &input)
          *out++ = input.at<float>(ri,ci);
    return n;
 }
+
+}   //  namespace hesaff

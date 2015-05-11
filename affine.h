@@ -14,6 +14,8 @@
 #include <cv.h>
 #include "helpers.h"
 
+namespace hesaff {
+
 struct AffineShapeParams
 {
    // number of affine shape interations
@@ -100,5 +102,7 @@ private:
    std::vector<unsigned char> workspace;
    cv::Mat mask, img, fx, fy;
 };
+
+}   //  namespace hesaff
 
 #endif // __AFFINE_H__

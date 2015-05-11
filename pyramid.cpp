@@ -14,6 +14,9 @@
 #include "helpers.h"
 
 #include <iostream>
+
+namespace hesaff {
+
 using namespace std;
 /* find blob point type from Hessian matrix H, 
    we know that:
@@ -290,3 +293,5 @@ void HessianDetector::detectPyramidKeypoints(const Mat &image)
       firstLevel = nextOctaveFirstLevel;
    }
 }
+
+}   // namespace hesaff
