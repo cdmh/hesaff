@@ -175,13 +175,6 @@ vector<Keypoint> hessian_affine(cv::Mat const &src)
     detector.detectPyramidKeypoints(image);
     cout << "Detected " << g_numberOfPoints << " keypoints and " << g_numberOfAffinePoints << " affine shapes in " << getTime()-t1 << " sec." << endl;
 
-    detector.keys.erase(
-        std::remove_if(
-            detector.keys.begin(),
-            detector.keys.end(),
-            [](){
-        }),
-        detector.keys.end());
     return detector.keys;
 }
 
