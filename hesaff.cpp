@@ -142,9 +142,10 @@ pixelDistance;
 
 // Detects Hessian Affine points and describes them using SIFT descriptor
 // The detector assumes that the vertical orientation is preserved.
-vector<Keypoint> hessian_affine(cv::Mat const &src)
+pair<vector<Keypoint>, Mat> hessian_affine(cv::Mat const &src)
 {
     Mat image(src.rows, src.cols, CV_32FC1, Scalar(0));
+    assert(src.channels() == 3);
       
     float *out = image.ptr<float>(0);
     unsigned char const *in  = src.ptr<unsigned char>(0); 
@@ -175,7 +176,7 @@ vector<Keypoint> hessian_affine(cv::Mat const &src)
     detector.detectPyramidKeypoints(image);
     cout << "Detected " << g_numberOfPoints << " keypoints and " << g_numberOfAffinePoints << " affine shapes in " << getTime()-t1 << " sec." << endl;
 
-    return detector.keys;
+    return { detector.keys, detector.SIFTdescriptors() };
 }
 
 }   // namespace hesaff

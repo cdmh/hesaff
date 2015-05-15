@@ -17,6 +17,6 @@ struct Keypoint
 
 // Detects Hessian Affine points and describes them using SIFT descriptor
 // The detector assumes that the vertical orientation is preserved.
-std::vector<Keypoint> hessian_affine(cv::Mat const &src);
+std::pair<std::vector<Keypoint>, cv::Mat> hessian_affine(cv::Mat const &src);
 
 }   // namespace hesaff
